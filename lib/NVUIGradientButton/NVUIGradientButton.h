@@ -41,6 +41,9 @@ typedef NS_ENUM(NSUInteger, NVUIGradientButtonStyle)
 @property (nonatomic, strong) UIImage *rightHighlightedAccessoryImage UI_APPEARANCE_SELECTOR; // default is nil
 @property (nonatomic, strong) UIImage *leftAccessoryImage UI_APPEARANCE_SELECTOR; // default is nil
 @property (nonatomic, strong) UIImage *leftHighlightedAccessoryImage UI_APPEARANCE_SELECTOR; // default is nil
+@property (nonatomic, strong) UIImage *iconImage UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIImage *iconHighlightedImage UI_APPEARANCE_SELECTOR;
+@property (nonatomic, strong) UIFont* textFont UI_APPEARANCE_SELECTOR;
 
 // Designated initializer
 - (id)initWithFrame:(CGRect)frame style:(NVUIGradientButtonStyle)style cornerRadius:(CGFloat)cornerRadius borderWidth:(CGFloat)borderWidth andText:(NSString *)text;

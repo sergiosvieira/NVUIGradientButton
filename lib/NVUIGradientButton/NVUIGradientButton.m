@@ -47,6 +47,7 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 - (NSString *)textAccordingToCurrentState;
 - (UIImage *)rightAccessoryImageAccordingToCurrentState;
 - (UIImage *)leftAccessoryImageAccordingToCurrentState;
+- (UIImage *)iconImageAccordingToCurrentState;
 - (CGGradientRef)newGradientAccordingToCurrentState;
 @property (strong, nonatomic, readwrite) UILabel *titleLabel;
 
@@ -69,7 +70,7 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 		
 		[appearance setTintColor:[UIColor colorWithRed:gray green:gray blue:gray alpha:1]];
 		[appearance setHighlightedTintColor:[UIColor colorWithRed:0 green:(CGFloat)157/255 blue:1 alpha:1]];
-		[appearance setBorderColor:[UIColor darkGrayColor]];
+		[appearance setBorderColor:[UIColor darkGrayColor].CGColor];
 		[appearance setHighlightedBorderColor:[UIColor whiteColor]];
 		[appearance setTextColor:[UIColor blackColor]];
 		[appearance setHighlightedTextColor:[UIColor whiteColor]];
@@ -113,8 +114,8 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 
 #pragma mark - Creation
 
-#define NVUIGradientButtonDefaultCorderRadius	10.0
-#define NVUIGradientButtonDefaultBorderWidth	2.0
+#define NVUIGradientButtonDefaultCorderRadius	5.0
+#define NVUIGradientButtonDefaultBorderWidth	5.0
 
 - (void)performDefaultInit
 {
@@ -129,7 +130,7 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	_titleLabel.textAlignment = UITextAlignmentCenter;
 	_titleLabel.lineBreakMode = UILineBreakModeMiddleTruncation;
 	_titleLabel.numberOfLines = 0;
-	_titleLabel.font = [UIFont boldSystemFontOfSize:15.0];
+	_titleLabel.font = self.textFont ? self.textFont : [UIFont boldSystemFontOfSize:15.0];
 	_titleLabel.minimumFontSize = 12.0;
 	_titleLabel.shadowOffset = CGSizeMake(0, -1);
 	
@@ -196,7 +197,10 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 				id appearance = [[self class] appearance];
 				self.tintColor = [appearance tintColor];
 				self.highlightedTintColor = [appearance highlightedTintColor];
-				self.borderColor = [appearance borderColor];
+
+                UIColor *borderColor = [[UIColor alloc] initWithCGColor:(struct CGColor *)CFBridgingRetain([appearance borderColor])];
+				self.borderColor = borderColor;
+                //self.borderColor = CFBridgingRelease(CFBridgingRetain([appearance borderColor]));
 				self.highlightedBorderColor = [appearance highlightedBorderColor];
 				self.textColor = [appearance textColor];
 				self.highlightedTextColor = [appearance highlightedTextColor];
@@ -787,6 +791,16 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	return image;
 }
 
+- (UIImage *)iconImageAccordingToCurrentState
+{
+	UIImage *image = _iconImage;
+	
+	if ([self isHighlightedOrSelected] && _iconHighlightedImage)
+		image = _iconHighlightedImage;
+	
+	return image;
+}
+
 
 #pragma mark - Gradient
 
@@ -852,8 +866,12 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	NSAttributedString *attributedText = [self attributedTextAccordingToCurrentState];
 	UIImage *leftImage = [self leftAccessoryImageAccordingToCurrentState];
 	UIImage *rightImage = [self rightAccessoryImageAccordingToCurrentState];
+    UIImage *iconImage = [self iconImageAccordingToCurrentState];
 	CGFloat maxHeight = CGRectGetHeight(self.bounds) - padding*2;
-	
+    CGRect leftAccessoryRect = CGRectZero;
+    CGRect rightAccessoryRect = CGRectZero;
+    CGRect iconRect = CGRectZero;
+
 	// Draw
 	[path addClip];
 	
@@ -882,33 +900,40 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 		CGGradientRelease(gradient);
 	}
 	
-	// Draw left image
-	CGRect leftAccessoryRect = CGRectZero;
-	if (leftImage)
-	{
-		leftAccessoryRect.size.height = MIN(maxHeight, leftImage.size.height);
-		leftAccessoryRect.size.width = leftAccessoryRect.size.height / leftImage.size.height * leftImage.size.width;
-		leftAccessoryRect.origin.y = (CGRectGetHeight(self.bounds) - CGRectGetHeight(leftAccessoryRect)) / 2;
-		leftAccessoryRect.origin.x = padding;
-		[leftImage drawInRect:leftAccessoryRect];
-	}
 	
-	// Draw right image
-	CGRect rightAccessoryRect = CGRectZero;
-	if (rightImage)
-	{
-		rightAccessoryRect.size.height = MIN(maxHeight, rightImage.size.height);
-		rightAccessoryRect.size.width = rightAccessoryRect.size.height / rightImage.size.height * rightImage.size.width;
-		rightAccessoryRect.origin.y = (CGRectGetHeight(self.bounds) - CGRectGetHeight(rightAccessoryRect)) / 2;
-		rightAccessoryRect.origin.x = CGRectGetWidth(self.bounds) - CGRectGetWidth(rightAccessoryRect) - padding;
-		[rightImage drawInRect:rightAccessoryRect];
-	}
-	
+    if (!iconImage)
+    {
+        // Draw left image
+        if (leftImage)
+        {
+            leftAccessoryRect.size.height = MIN(maxHeight, leftImage.size.height);
+            leftAccessoryRect.size.width = leftAccessoryRect.size.height / leftImage.size.height * leftImage.size.width;
+            leftAccessoryRect.origin.y = (CGRectGetHeight(self.bounds) - CGRectGetHeight(leftAccessoryRect)) / 2;
+            leftAccessoryRect.origin.x = padding;
+            [leftImage drawInRect:leftAccessoryRect];
+        }
+        
+        // Draw right image
+        if (rightImage)
+        {
+            rightAccessoryRect.size.height = MIN(maxHeight, rightImage.size.height);
+            rightAccessoryRect.size.width = rightAccessoryRect.size.height / rightImage.size.height * rightImage.size.width;
+            rightAccessoryRect.origin.y = (CGRectGetHeight(self.bounds) - CGRectGetHeight(rightAccessoryRect)) / 2;
+            rightAccessoryRect.origin.x = CGRectGetWidth(self.bounds) - CGRectGetWidth(rightAccessoryRect) - padding;
+            [rightImage drawInRect:rightAccessoryRect];
+        }
+    }
+		
 	// Draw border
 	if (_borderWidth > 0)
 	{
 		path.lineWidth = _borderWidth;
-		[borderColor set];
+        
+        if ([borderColor respondsToSelector:@selector(set)])
+        {
+            [borderColor set];
+        }
+        
 		[path stroke];
 	}
 	
@@ -916,14 +941,17 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	CGRect innerRect = self.bounds;
 	innerRect = CGRectInset(innerRect, padding, padding);
 	
-	if (rightImage)
-		innerRect.size.width = CGRectGetMinX(rightAccessoryRect);
-	
-	if (leftImage)
-	{
-		innerRect.size.width -= CGRectGetWidth(leftAccessoryRect);
-		innerRect.origin.x = CGRectGetMaxX(leftAccessoryRect);
-	}
+    if (iconImage)
+    {
+        if (rightImage)
+            innerRect.size.width = CGRectGetMinX(rightAccessoryRect);
+        
+        if (leftImage)
+        {
+            innerRect.size.width -= CGRectGetWidth(leftAccessoryRect);
+            innerRect.origin.x = CGRectGetMaxX(leftAccessoryRect);
+        }
+    }
 
 	if (attributedText && [_titleLabel respondsToSelector:@selector(attributedText)])
 	{
@@ -936,7 +964,20 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 		_titleLabel.text = text;
 		[textColor set];
 	}
-	
+	    
+    /** icon image **/
+    if (self.iconImage)
+    {
+        iconRect.size.height = MIN(maxHeight, self.iconImage.size.height);
+        iconRect.size.width = iconRect.size.height / self.iconImage.size.height * self.iconImage.size.width;
+        iconRect.origin.x = self.bounds.origin.x + 20.f;
+        iconRect.origin.y = (self.bounds.size.height - iconRect.size.height) / 2.f;
+        
+        [self.iconImage drawInRect:iconRect];
+        _titleLabel.textAlignment = NSTextAlignmentLeft;
+    }
+    
+    innerRect.origin.x = CGRectGetMaxX(iconRect) + 5.f;
 	[_titleLabel drawTextInRect:innerRect];
 }
 
@@ -1008,5 +1049,9 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	return [self textAccordingToCurrentState];
 }
 
+- (void)setTextFont:(UIFont *)textFont
+{
+    _titleLabel.font = textFont ? textFont : [UIFont boldSystemFontOfSize:15.0];
+}
 
 @end
