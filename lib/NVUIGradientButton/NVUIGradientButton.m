@@ -127,11 +127,11 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	
 	// Label
 	_titleLabel = [[UILabel alloc] init];
-	_titleLabel.textAlignment = UITextAlignmentCenter;
-	_titleLabel.lineBreakMode = UILineBreakModeMiddleTruncation;
+	_titleLabel.textAlignment = NSTextAlignmentCenter;
+	_titleLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
 	_titleLabel.numberOfLines = 0;
 	_titleLabel.font = self.textFont ? self.textFont : [UIFont boldSystemFontOfSize:15.0];
-	_titleLabel.minimumFontSize = 12.0;
+	_titleLabel.minimumScaleFactor = 0.0;
 	_titleLabel.shadowOffset = CGSizeMake(0, -1);
 	
 	if (![[self class] conformsToProtocol:@protocol(UIAppearance)])
@@ -198,7 +198,8 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 				self.tintColor = [appearance tintColor];
 				self.highlightedTintColor = [appearance highlightedTintColor];
 
-                UIColor *borderColor = [[UIColor alloc] initWithCGColor:(struct CGColor *)CFBridgingRetain([appearance borderColor])];
+//                UIColor *borderColor = [[UIColor alloc] initWithCGColor:(struct CGColor *)CFBridgingRetain([appearance borderColor])];
+                UIColor *borderColor = [UIColor colorWithCGColor:[appearance borderColor]];
 				self.borderColor = borderColor;
                 //self.borderColor = CFBridgingRelease(CFBridgingRetain([appearance borderColor]));
 				self.highlightedBorderColor = [appearance highlightedBorderColor];
