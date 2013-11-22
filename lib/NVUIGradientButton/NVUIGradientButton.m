@@ -76,7 +76,7 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 		[appearance setHighlightedTextColor:[UIColor whiteColor]];
 		[appearance setTextShadowColor:[UIColor clearColor]];
 		[appearance setHighlightedTextShadowColor:[UIColor darkGrayColor]];
-		[appearance setGradientEnabled:YES];
+		[appearance setGradientEnabled:NO];
 		[appearance setGlossy:NO];
 	}
 }
@@ -131,7 +131,8 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	_titleLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
 	_titleLabel.numberOfLines = 0;
 	_titleLabel.font = self.textFont ? self.textFont : [UIFont boldSystemFontOfSize:15.0];
-	_titleLabel.minimumScaleFactor = 0.0;
+    //_titleLabel.minimumScaleFactor = 1.f;
+	//_titleLabel.minimumFontSize = 12.0;
 	_titleLabel.shadowOffset = CGSizeMake(0, -1);
 	
 	if (![[self class] conformsToProtocol:@protocol(UIAppearance)])
@@ -200,6 +201,7 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 
 //                UIColor *borderColor = [[UIColor alloc] initWithCGColor:(struct CGColor *)CFBridgingRetain([appearance borderColor])];
                 UIColor *borderColor = [UIColor colorWithCGColor:[appearance borderColor]];
+                
 				self.borderColor = borderColor;
                 //self.borderColor = CFBridgingRelease(CFBridgingRetain([appearance borderColor]));
 				self.highlightedBorderColor = [appearance highlightedBorderColor];
@@ -942,7 +944,7 @@ static CGGradientRef NVCGGradientCreate(CGColorRef startColor, CGColorRef endCol
 	CGRect innerRect = self.bounds;
 	innerRect = CGRectInset(innerRect, padding, padding);
 	
-    if (iconImage)
+    if (!iconImage)
     {
         if (rightImage)
             innerRect.size.width = CGRectGetMinX(rightAccessoryRect);
